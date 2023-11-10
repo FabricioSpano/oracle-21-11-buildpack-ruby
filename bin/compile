@@ -8,39 +8,38 @@ def indent(msg)
   puts "       #{msg}"
 end
 
-BUILD_DIR=ARGV[0]
-ENV_DIR=ARGV[2]
-BP_DIR=`cd $(dirname #{$0})/..; pwd`.gsub("\n", "")
+BUILD_DIR = ARGV[0]
+ENV_DIR = ARGV[2]
+BP_DIR = `cd $(dirname #{$0})/..; pwd`.gsub("\n", '')
 
-puts "-----> Found an .oracle.yml"
+puts '-----> Found an .oracle.yml'
 
 ORACLE_CONFIG = YAML.load_file("#{BUILD_DIR}/.oracle.yml")
 
-ORACLE_INSTANT_CLIENT_DIR="vendor/oracle_instantclient"
-ORACLE_INSTANT_CLIENT_BASIC_URL="https://download.oracle.com/otn_software/linux/instantclient/2111000/instantclient-basic-linux.x64-21.11.0.0.0dbru.zip"
-ORACLE_INSTANT_CLIENT_FILENAME=ORACLE_INSTANT_CLIENT_BASIC_URL.split(/\//).last
+ORACLE_INSTANT_CLIENT_DIR = 'vendor/oracle_instantclient'
+ORACLE_INSTANT_CLIENT_BASIC_URL = 'https://download.oracle.com/otn_software/linux/instantclient/2111000/instantclient-basic-linux.x64-21.11.0.0.0dbru.zip'
+ORACLE_INSTANT_CLIENT_FILENAME = ORACLE_INSTANT_CLIENT_BASIC_URL.split(%r{/}).last
 
 indent "Making directory #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}"
 `mkdir -p #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}`
 
 indent "Downloading and extracting #{ORACLE_INSTANT_CLIENT_FILENAME}"
-#result = `curl #{ORACLE_INSTANT_CLIENT_URL} -L -s -o - | unzip -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
-result = `curl #{ORACLE_INSTANT_CLIENT_BASIC_URL} -L -s -o - | tar -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
+`curl #{ORACLE_INSTANT_CLIENT_BASIC_URL} -L -s -o - | unzip #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -d - `
+# `curl #{ORACLE_INSTANT_CLIENT_BASIC_URL} -L -s -o - | tar -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
 
-
-ORACLE_INSTANT_CLIENT_SDK_URL="https://download.oracle.com/otn_software/linux/instantclient/2111000/instantclient-sdk-linux.x64-21.11.0.0.0dbru.zip"
-ORACLE_INSTANT_CLIENT_FILENAME=ORACLE_INSTANT_CLIENT_SDK_URL.split(/\//).last
-
-indent "Downloading and extracting #{ORACLE_INSTANT_CLIENT_FILENAME}"
-#result = `curl #{ORACLE_INSTANT_CLIENT_URL} -L -s -o - | unzip -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
-result = `curl #{ORACLE_INSTANT_CLIENT_SDK_URL} -L -s -o - | tar -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
-
-ORACLE_INSTANT_CLIENT_SQLPLUS_URL="https://download.oracle.com/otn_software/linux/instantclient/2111000/instantclient-sqlplus-linux.x64-21.11.0.0.0dbru.zip"
-ORACLE_INSTANT_CLIENT_FILENAME=ORACLE_INSTANT_CLIENT_SQLPLUS_URL.split(/\//).last
+ORACLE_INSTANT_CLIENT_SDK_URL = 'https://download.oracle.com/otn_software/linux/instantclient/2111000/instantclient-sdk-linux.x64-21.11.0.0.0dbru.zip'
+ORACLE_INSTANT_CLIENT_FILENAME = ORACLE_INSTANT_CLIENT_SDK_URL.split(%r{/}).last
 
 indent "Downloading and extracting #{ORACLE_INSTANT_CLIENT_FILENAME}"
-#result = `curl #{ORACLE_INSTANT_CLIENT_URL} -L -s -o - | unzip -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
-result = `curl #{ORACLE_INSTANT_CLIENT_SQLPLUS_URL} -L -s -o - | tar -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
+`curl #{ORACLE_INSTANT_CLIENT_SDK_URL} -L -s -o - | unzip #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -d - `
+# `curl #{ORACLE_INSTANT_CLIENT_SDK_URL} -L -s -o - | tar -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
+
+ORACLE_INSTANT_CLIENT_SQLPLUS_URL = 'https://download.oracle.com/otn_software/linux/instantclient/2111000/instantclient-sqlplus-linux.x64-21.11.0.0.0dbru.zip'
+ORACLE_INSTANT_CLIENT_FILENAME = ORACLE_INSTANT_CLIENT_SQLPLUS_URL.split(%r{/}).last
+
+indent "Downloading and extracting #{ORACLE_INSTANT_CLIENT_FILENAME}"
+`curl #{ORACLE_INSTANT_CLIENT_SQLPLUS_URL} -L -s -o - | unzip #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -d - `
+# `curl #{ORACLE_INSTANT_CLIENT_SQLPLUS_URL} -L -s -o - | tar -xvz -C #{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR} -f - `
 
 unless $?.success?
   indent "Failure while downloading Oracle instant client archive: #{$?}"
@@ -64,12 +63,12 @@ ORACLE_NETWORK_ADMIN_DIR = "#{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}/network/ad
 #   `ln -sf #{File.join('/app',SQLNET_FILENAME)} #{ORACLE_NETWORK_ADMIN_DIR}/sqlnet.ora`
 # end
 
-indent "Create profile.d script"
+indent 'Create profile.d script'
 `mkdir -p #{BUILD_DIR}/.profile.d`
 
 ORACLE_HOME = "/app/#{ORACLE_INSTANT_CLIENT_DIR}"
 
-open("#{BUILD_DIR}/.profile.d/oracle.sh", "w") do |f|
+open("#{BUILD_DIR}/.profile.d/oracle.sh", 'w') do |f|
   f.puts "export ORACLE_HOME=#{ORACLE_HOME}"
   f.puts "export LD_LIBRARY_PATH=#{ORACLE_HOME}:$LD_LIBRARY_PATH"
   f.puts "export PATH=#{ORACLE_HOME}:$PATH"
@@ -78,24 +77,22 @@ open("#{BUILD_DIR}/.profile.d/oracle.sh", "w") do |f|
   f.puts "export OCI_INC_DIR=#{ORACLE_HOME}/sdk/include"
 end
 
-indent "Save build LD_LIBRARY_PATH to ENV_DIR"
+indent 'Save build LD_LIBRARY_PATH to ENV_DIR'
 
 LD_LIBRARY_PATH_FILE = File.join(ENV_DIR, 'LD_LIBRARY_PATH')
-existing_ld_library_path = `cat #{LD_LIBRARY_PATH_FILE}`  if File.exists?(LD_LIBRARY_PATH_FILE)
+existing_ld_library_path = `cat #{LD_LIBRARY_PATH_FILE}` if File.exist?(LD_LIBRARY_PATH_FILE)
 
-open(File.join(ENV_DIR,'LD_LIBRARY_PATH'), 'w') do |f|
+open(File.join(ENV_DIR, 'LD_LIBRARY_PATH'), 'w') do |f|
   value = "#{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}"
-  unless existing_ld_library_path.nil? || existing_ld_library_path.trim.empty?
-    value += ":#{existing_ld_library_path}"
-  end
+  value += ":#{existing_ld_library_path}" unless existing_ld_library_path.nil? || existing_ld_library_path.trim.empty?
   f.puts value
 end
 
 indent "Save OCI_LIB_DIR to #{BP_DIR}/export"
-open(File.join(BP_DIR,'export'), 'w') do |f|
+open(File.join(BP_DIR, 'export'), 'w') do |f|
   f.puts "export OCI_LIB_DIR=#{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}"
   f.puts "export OCI_INC_DIR=#{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}/sdk/include"
   f.puts "export LD_LIBRARY_PATH=#{BUILD_DIR}/#{ORACLE_INSTANT_CLIENT_DIR}:$LD_LIBRARY_PATH"
 end
 
-indent "Done!"
+indent 'Done!'

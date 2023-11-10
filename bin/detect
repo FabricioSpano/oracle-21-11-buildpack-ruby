@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 # this builpack is valid for apps with a .oracle.yml in the root
 if [ -f $1/.oracle.yml ]; then
   echo "Oracle"
